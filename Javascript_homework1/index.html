@@ -6,9 +6,18 @@
     <title>Document</title>
 </head>
 <body>
-        <script src="tool.js"></script>
-        <script> 
-            pp( "hello world!") ;
-        </script>
+
+    <script src="tool.js"></script>
+    <script> 
+
+        pp( "hello world!") ;
+        let prime=[];
+        const MAX = 100 ;
+        prime.push ( 2 ) ;
+        for ( let i = 3 ; i < MAX ; i++ ) {
+          if ( isPrime( i ) === true ) { prime.push( i ) ; }
+        }
+        pp ( prime ) ;
+    </script>
 </body>
 </html>
