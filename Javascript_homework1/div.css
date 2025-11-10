@@ -1,0 +1,32 @@
+#mainDiv{
+    width: 100vw ; 
+    height: 100vh ;
+    margin: 0em;
+    padding: auto;
+    /*overflow-y: auto;        
+    display: flex;*/
+}
+.cellDiv{
+    background-color: rgb(13, 118, 121);
+    display: inline-block; /* makes divs line up horizontally */
+    width: 150px ;
+    height: 150px ;
+    font-size: 100px;
+    text-align: center;
+    padding-top: 10px;
+    border-radius: 25px;
+    /* background-image: url(paper.jpg);
+    */
+    background-position: left top;
+    background-repeat: repeat;
+    margin: 10px;
+    color: cadetblue;
+    visibility:visible;
+}
+.cellDiv:hover{
+    opacity: 0.5;
+  /* Move 5 pixels right and 10 pixels down from its original position */
+     transform: translate(5px, 10px);
+     color: black;
+     visibility: visible;
+}

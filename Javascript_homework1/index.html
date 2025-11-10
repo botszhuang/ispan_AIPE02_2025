@@ -4,20 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-</head>
-<body>
 
+    <link rel="stylesheet" href="./div.css" >
+</head>
+<body style="background-color: blanchedalmond;" >
+    <div id="mainDiv"></div>
+    
     <script src="tool.js"></script>
     <script> 
 
         pp( "hello world!") ;
         let prime=[];
-        const MAX = 100 ;
-        prime.push ( 2 ) ;
-        for ( let i = 3 ; i < MAX ; i++ ) {
-          if ( isPrime( i ) === true ) { prime.push( i ) ; }
-        }
+        getPrime100( prime ) ;
         pp ( prime ) ;
+        
+        let mainDiv = document.querySelector ( "div#mainDiv" ) ;
+        let cellArray = [] ;
+        let batchSize = 0 ;
+
+        appendCells ( cellArray , prime , 0 , prime.length ,  mainDiv ) ;
+
     </script>
 </body>
 </html>
