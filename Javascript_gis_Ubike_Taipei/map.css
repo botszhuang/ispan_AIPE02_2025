@@ -1,0 +1,6 @@
+.mapStyle {
+    /* Set the map size */
+    height: 400px;
+    width: 100%;
+    background-color: aquamarine;
+}

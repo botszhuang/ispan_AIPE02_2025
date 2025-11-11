@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSI</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="map.css">
+</head>
+
+<body>
+    <div id="map" class="mapStyle"></div>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script src="leaflet.js"></script>
+
+    <script>
+        let map = L.map('map').setView([25.0339145, 121.5412233], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+
+        L.marker([25.0339145, 121.5412233]).addTo(map)
+            .bindPopup('自訂訊息<br>可以放 HTML')
+            .openPopup();
+
+        // Location data (you could load this from a file or API later)
+        const cities = [
+            { name: "Tokyo", lat: 35.6812, lon: 139.7671 },
+            { name: "Nagoya", lat: 35.1815, lon: 136.9066 },
+            { name: "Okinawa", lat: 26.2124, lon: 127.6809 },
+            { name: "Taipei", lat: 25.0330, lon: 121.5654 }
+        ];
+
+        // Loop through each city in the cities list
+        cities.forEach(function (city) {
+            const marker = L.marker([city.lat, city.lon]);
+            marker.addTo(map);
+            marker.bindPopup("<b>" + city.name + "</b><br>Lat: " + city.lat + "<br>Lon: " + city.lon);
+        });
+
+    </script>
+</body>
+
+</html>
