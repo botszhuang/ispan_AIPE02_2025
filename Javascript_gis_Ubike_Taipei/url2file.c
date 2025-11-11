@@ -94,14 +94,14 @@ void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[
 
     if (c == '{')
     {
-        num->insideBlock = 1;
+        num->insideBlock++;
         num->blockSize = 100;
         currentBlock = malloc(num->blockSize);
         num->currentLen = 0;
     }
     else if (c == '}' && num->insideBlock)
     {
-        num->insideBlock = 0;
+        num->insideBlock--;
 
         // null-terminate
         if (num->currentLen + 1 > num->blockSize)
@@ -182,16 +182,17 @@ int main(int argc, char *argv[])
     num.currentLen = 0 ;
     num.insideBlock = 0 ;
 
+    char c ;
+
     while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
     {
         chunk[bytesRead] = '\0';
 
         for (size_t i = 0; i < bytesRead; i++)
         {
-            char c = chunk[i];
-            if ( num.blockCount < MAX_BLOCKS ) { 
-                exam_a_char ( c , &num , &currentBlock , blocks ) ;
-            }
+            c = chunk[i];
+            if ( !(num.blockCount < MAX_BLOCKS ) ) { break; } 
+            exam_a_char ( c , &num , &currentBlock , blocks ) ;
         }
     }
 
