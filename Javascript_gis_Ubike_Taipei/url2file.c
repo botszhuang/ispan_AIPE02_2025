@@ -78,7 +78,7 @@ int donwloadFileFromURL(const char *fName, char *urlAddress)
 }
 
 #define CHUNK_SIZE 1024
-#define MAX_BLOCKS 100
+#define MAX_BLOCKS 10
 typedef struct
 {
     size_t blockSize;
@@ -87,7 +87,6 @@ typedef struct
     int blockCount;
 
 } numStruct;
-
 void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[] )
 {
 
@@ -140,7 +139,15 @@ void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[
     * currentBlockIn = currentBlock ; 
     
 }
-
+void print_block( numStruct * num , char * blocks[] ){
+    unsigned int blockCount = num->blockCount ;
+    printf("Total blocks found: %d\n", blockCount);
+    for (unsigned int i = 0; i < blockCount; i++)
+    {
+        printf("Block %d:\n%s\n\n", i , blocks[i]);
+        free(blocks[i]);
+    }
+}
 int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, ".UTF-8");    
@@ -165,15 +172,9 @@ int main(int argc, char *argv[])
     }
 
     char *blocks[MAX_BLOCKS];
-    //int blockCount = 0;
-
     char chunk[CHUNK_SIZE + 1];
     size_t bytesRead;
-
     char *currentBlock = NULL;
-    //size_t blockSize = 0;
-    //size_t currentLen = 0;
-    //int insideBlock = 0;
 
     numStruct num ;
     num.blockCount = 0 ;
@@ -196,13 +197,7 @@ int main(int argc, char *argv[])
 
     fclose(fp);
 
-    // Print blocks
-    printf("Total blocks found: %d\n", num.blockCount);
-    for (int i = 0; i < num.blockCount; i++)
-    {
-        printf("Block %d:\n%s\n\n", i , blocks[i]);
-        free(blocks[i]);
-    }
+    print_block( &num , blocks ) ;
 
     return EXIT_SUCCESS;
 }
