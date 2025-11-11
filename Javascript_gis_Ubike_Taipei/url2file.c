@@ -1,34 +1,8 @@
-/***************************************************************************
- *                                  _   _ ____  _
- *  Project                     ___| | | |  _ \| |
- *                             / __| | | | |_) | |
- *                            | (__| |_| |  _ <| |___
- *                             \___|\___/|_| \_\_____|
- *
- * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
- *
- * This software is licensed as described in the file COPYING, which
- * you should have received as part of this distribution. The terms
- * are also available at https://curl.se/docs/copyright.html.
- *
- * You may opt to use, copy, modify, merge, publish, distribute and/or sell
- * copies of the Software, and permit persons to whom the Software is
- * furnished to do so, under the terms of the COPYING file.
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
- * KIND, either express or implied.
- *
- * SPDX-License-Identifier: curl
- *
- ***************************************************************************/
-/* <DESC>
- * Download a given URL into a local file named page.out.
- * </DESC>
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <curl/curl.h>
 #include <string.h>
+#include <locale.h>
 
 static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -114,8 +88,10 @@ typedef struct
 
 } numStruct;
 
-char exam_a_char(char c, numStruct *num)
+void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[] )
 {
+
+    char * currentBlock = currentBlockIn [0] ;
 
     if (c == '{')
     {
@@ -160,10 +136,15 @@ char exam_a_char(char c, numStruct *num)
         }
         currentBlock[(num->currentLen)++] = c;
     }
+
+    * currentBlockIn = currentBlock ; 
+    
 }
 
 int main(int argc, char *argv[])
 {
+    setlocale(LC_ALL, ".UTF-8");    
+
     int res = 0;
 
     const char *fName = "Ubike.json";
@@ -184,15 +165,21 @@ int main(int argc, char *argv[])
     }
 
     char *blocks[MAX_BLOCKS];
-    int blockCount = 0;
+    //int blockCount = 0;
 
     char chunk[CHUNK_SIZE + 1];
     size_t bytesRead;
 
     char *currentBlock = NULL;
-    size_t blockSize = 0;
-    size_t currentLen = 0;
-    int insideBlock = 0;
+    //size_t blockSize = 0;
+    //size_t currentLen = 0;
+    //int insideBlock = 0;
+
+    numStruct num ;
+    num.blockCount = 0 ;
+    num.blockSize = 0 ;
+    num.currentLen = 0 ;
+    num.insideBlock = 0 ;
 
     while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
     {
@@ -201,50 +188,8 @@ int main(int argc, char *argv[])
         for (size_t i = 0; i < bytesRead; i++)
         {
             char c = chunk[i];
-
-            if (c == '{')
-            {
-                insideBlock = 1;
-                blockSize = 100;
-                currentBlock = malloc(blockSize);
-                currentLen = 0;
-            }
-            else if (c == '}' && insideBlock)
-            {
-                insideBlock = 0;
-
-                // null-terminate
-                if (currentLen + 1 > blockSize)
-                {
-                    currentBlock = realloc(currentBlock, currentLen + 1);
-                }
-                currentBlock[currentLen] = '\0';
-
-                // store block safely
-                if (blockCount < MAX_BLOCKS)
-                {
-                    blocks[blockCount++] = currentBlock;
-                    printf("blockCount = %d\n", blockCount);
-                }
-                else
-                {
-                    printf("blockCount = %d\n", blockCount);
-                    free(currentBlock);
-                    break;
-                }
-
-                currentBlock = NULL;
-                currentLen = 0;
-            }
-            else if (insideBlock)
-            {
-                // append char
-                if (currentLen + 1 >= blockSize)
-                {
-                    blockSize += 100;
-                    currentBlock = realloc(currentBlock, blockSize);
-                }
-                currentBlock[currentLen++] = c;
+            if ( num.blockCount < MAX_BLOCKS ) { 
+                exam_a_char ( c , &num , &currentBlock , blocks ) ;
             }
         }
     }
@@ -252,12 +197,12 @@ int main(int argc, char *argv[])
     fclose(fp);
 
     // Print blocks
-    /*printf("Total blocks found: %d\n", blockCount);
-    for (int i = 0; i < blockCount; i++)
+    printf("Total blocks found: %d\n", num.blockCount);
+    for (int i = 0; i < num.blockCount; i++)
     {
-        printf("Block %d:\n%s\n\n", i + 1, blocks[i]);
+        printf("Block %d:\n%s\n\n", i , blocks[i]);
         free(blocks[i]);
-    }*/
+    }
 
     return EXIT_SUCCESS;
 }
