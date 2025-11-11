@@ -20,9 +20,29 @@
         
         let mainDiv = document.querySelector ( "div#mainDiv" ) ;
         let cellArray = [] ;
-        let batchSize = 0 ;
+        let Wpiece =  Math.floor ( mainDiv.clientWidth / 200 )  ;
+        let Hpiece = 2 ;
+        let batchSizeOld = 0 ;
+        let batchSize = Wpiece  * Hpiece ;
+        pp( "batchSzie = "+ batchSize ) ;
+        let batchSizeNew = batchSize ;
 
-        appendCells ( cellArray , prime , 0 , prime.length ,  mainDiv ) ;
+        create_and_append_Cells ( cellArray , prime , batchSizeOld , batchSizeNew , mainDiv) ;
+        
+        function editCell(){
+            let cells = document.querySelectorAll ( ".cellDiv" ) ;
+            cells.forEach(element => {
+                element.style.width =  ( 100/Wpiece ) + "%" ;
+            });
+        }
+        editCell() ;
+
+        window.addEventListener( "scroll", function(){
+            batchSizeOld += batchSize ;
+            batchSizeNew = batchSizeOld + batchSize ; 
+            create_and_append_Cells ( cellArray , prime , batchSizeOld , batchSizeNew , mainDiv) ;
+            editCell() ; 
+        } ) ;
 
     </script>
 </body>

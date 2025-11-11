@@ -1,27 +1,35 @@
+.body{
+    text-align: center;
+    display: grid;
+}
 #mainDiv{
-    width: 100vw ; 
+    width: 80vw ;
     height: 100vh ;
-    margin: 0em;
-    padding: auto;
-    /*overflow-y: auto;        
-    display: flex;*/
+    margin: 0 auto; /* centers horizontally */
+
 }
 .cellDiv{
-    background-color: rgb(13, 118, 121);
+    /*background-color: yellow;*/
     display: inline-block; /* makes divs line up horizontally */
-    width: 150px ;
-    height: 150px ;
+    /*width: 200px ;
+    height: 150px ;*/
+    visibility:visible;
+    justify-content: center;     /* Center horizontally */
+    align-items: center;         /* Center vertically */
+    /* width: 200px; */
+    height: 150px;
+    visibility: visible;
+}
+.textDiv{
+    width: 80% ;
+    height: 90%;
+    color: cadetblue;
     font-size: 100px;
     text-align: center;
-    padding-top: 10px;
     border-radius: 25px;
-    /* background-image: url(paper.jpg);
-    */
-    background-position: left top;
-    background-repeat: repeat;
-    margin: 10px;
-    color: cadetblue;
-    visibility:visible;
+    margin: 0 auto ;
+    background-color: rgb(13, 118, 121);
+
 }
 .cellDiv:hover{
     opacity: 0.5;

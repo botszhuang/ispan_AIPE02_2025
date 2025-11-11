@@ -23,24 +23,31 @@ function getPrime100( prime ){
         }
 }
 
-function appendCells ( cellArray , prime , start , end, mainDiv){
+function createCell ( cellArray , prime , i ){
     
-    for ( let i = start ; i < end ; i++ ) {    
-        cellArray[ i ] = document.createElement ( 'div' ) ;
-        cellArray[ i ].classList.add ( "cellDiv" ) ;
-        cellArray[ i ].textContent = prime [ i ] ;
+    cellArray[ i ] = document.createElement ( 'div' ) ;
+    cellArray[ i ].classList.add ( "cellDiv" ) ;
+    //cellArray[ i ].textContent = prime [ i ] ;
+
+    let textDiv = document.createElement ('div') ;
+    textDiv.classList.add ("textDiv") ;
+    textDiv.textContent = prime[i]; 
+    cellArray [ i ].appendChild ( textDiv ) ;
+}
+function create_and_append_Cells ( cellArray , prime , start , end, mainDiv){
+    
+    for ( let i = start ; i < end && i < prime.length ; i++ ) {    
+        createCell ( cellArray , prime , i ) ;
         mainDiv.appendChild ( cellArray [ i ] ) ;
     }
-
 }
 
-function cal_batchSize( mainDiv , cellArray ){
+function cal_batchSize( mainDiv , num ){
 
         pp ( "main = " + mainDiv.clientHeight + ", " + mainDiv.clientWidth ) ;
-        pp ( "cell = " + cellArray.clientHeight + ", " + cellArray.clientWidth ) ;
         
-        wSize = Math.floor ( mainDiv.clientWidth / cellArray.clientWidth ) ;
-        hSize = Math.floor( mainDiv.clientHeight / cellArray.clientHeight ) ;
+        wSize = Math.floor ( mainDiv.clientWidth * num ) ;
+        hSize = 2 ;
         batchSize = wSize * hSize ;
         pp ( "wSize = " + wSize + ", hSize = " + hSize ) ;
 
