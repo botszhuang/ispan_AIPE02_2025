@@ -3,13 +3,17 @@
 #include <curl/curl.h>
 #include <string.h>
 #include <locale.h>
+//#include <cjson/cJSON.h>
+#include "cJSON.h"
+// gcc cJSON.c url2file.c -o ur2file.o  -lcurl
+
 
 static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *stream)
 {
     size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
     return written;
 }
-int donwloadFileFromURL(char *fName, char *urlAddress)
+int donwloadFileFromURL(const char *fName, char *urlAddress)
 {
     // const char *fName = "Ubike.json";
     // char *urlAddress = "https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json";
@@ -78,71 +82,112 @@ int donwloadFileFromURL(char *fName, char *urlAddress)
 }
 
 #define CHUNK_SIZE 1024
-#define MAX_BLOCKS 5000
-#define STR_SIZE 512
+#define MAX_BLOCKS 10
+typedef struct
+{
+    size_t blockSize;
+    size_t currentLen;
+    int insideBlock;
+    int blockCount;
 
-char ** get_formatList ( char ** str0 , const unsigned int str0Len ) {
+} numStruct;
+void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[] )
+{
 
-    const char * FORMAT = ": \"%[^\"]\"" ;
-    const unsigned int FORMATLEN = strlen ( FORMAT ) ;
-    char ** formatList = malloc ( sizeof (char*) * str0Len ) ;
+    char * currentBlock = currentBlockIn [0] ;
 
-    for ( unsigned int i = 0 ; i < str0Len ; i ++ ) {
-        formatList [ i ] = malloc (  sizeof ( char ) * ( FORMATLEN + strlen ( str0 [ i ] ) ) ) ;
-        sprintf ( formatList [i] , "%s%s" , str0 [i] , FORMAT ) ;
-        printf ( "format[%i]: %s\n" , i , formatList[i] ) ;
+    if ( c == '{')
+    {
+        num->insideBlock++;
+        num->blockSize = 100;
+        currentBlock = malloc(num->blockSize);
+        num->currentLen = 0;
+    }
+    else if (c == '}' && num->insideBlock)
+    {
+        num->insideBlock--;
+
+        // null-terminate
+        if (num->currentLen + 1 > num->blockSize)
+        {
+            currentBlock = realloc(currentBlock, num->currentLen + 1);
+        }
+        currentBlock[num->currentLen] = '\0';
+
+        // store block safely
+        if (num->blockCount < MAX_BLOCKS)
+        {
+            blocks[(num->blockCount)++] = currentBlock;
+            printf("blockCount = %d\n", num->blockCount);
+        }
+        else
+        {
+            printf("blockCount = %d\n", num->blockCount);
+            free(currentBlock);
+        }
+
+        currentBlock = NULL;
+        num->currentLen = 0;
+    }
+    else if (num->insideBlock)
+    {
+        // append char
+        if (num->currentLen + 1 >= num->blockSize)
+        {
+            num->blockSize += 100;
+            currentBlock = realloc(currentBlock, num->blockSize);
+        }
+        currentBlock[(num->currentLen)++] = c;
     }
 
-    return formatList ;
+    * currentBlockIn = currentBlock ; 
+    
 }
-void free_formatList ( char ** x , const unsigned int xSize ) {
-
-    for ( unsigned int i = 0 ; i < xSize ; i++ ) { free ( x [ i ] ) ; }
-    free ( x ) ;
+void print_block( numStruct * num , char * blocks[] ){
+    unsigned int blockCount = num->blockCount ;
+    printf("Total blocks found: %d\n", blockCount);
+    for (unsigned int i = 0; i < blockCount; i++)
+    {
+        printf("Block %d:\n%s\n\n", i , blocks[i]);
+        free(blocks[i]);
+    }
 }
+char *read_file(const char *fName) {
+    
+    FILE *fp = NULL;
+    long fp_length = 0;
 
-unsigned int * get_str0SizeList ( char ** str0 , const unsigned int str0Len ) {
 
-    unsigned int * str0Size =  calloc ( str0Len, sizeof ( unsigned int ) ) ;
+    fp = fopen(fName, "r"); // Open file in binary mode for cross-platform compatibility
+    if (fp == NULL) {
+        fprintf(stderr, "Could not open file %s\n", fName );
+        return NULL;
+    }
+    
+    fseek ( fp, 0 , SEEK_END ) ;
+    fp_length = ftell ( fp ) ;
+    fseek ( fp, 0 , SEEK_SET ) ;
 
-    for ( unsigned int i = 0 ; i < str0Len ; i++ ) {
-        str0Size [ i ] =  strlen ( str0 [ i ] ) ;
+    char *content =  malloc ( fp_length + sizeof ('\0') ) ;
+    if ( content == NULL ) {
+        fprintf ( stderr , "Memory allocation errer!\n" ) ;
+        fclose ( fp ) ;
+        return NULL ;
     }
 
-    for ( unsigned int i = 0 ; i < str0Len ; i++ ) {
-        printf ( "str [%i] = %s, %i\n", i, str0[i] , str0Size [ i ] ) ;
+    size_t readbytes = fread ( content, 1, ( size_t) fp_length , fp ) ;
+    if ( readbytes != (size_t) fp_length) {
+        fprintf ( stderr , "Unable to reading file %s!\n", fName ) ;
+        free ( content ) ;
+        fclose ( fp ) ;
+        return NULL ;
     }
 
-    return str0Size ;
+    content [ fp_length ] = '\0' ;
+    fclose ( fp ) ;
+    return content ;
 }
 
-char ** get_out( const unsigned int outSize ){
- return ( malloc ( sizeof( char * ) * outSize ) ) ;
-}
-char * get_value( char * cPtr , char * format ){
-
-    char * newStr = malloc( STR_SIZE * sizeof(char) );
-
-    sscanf ( cPtr , format , newStr  );
-
-    const unsigned int intTmp = strlen ( newStr ) ;
-
-    if ( intTmp+1 < STR_SIZE ) {
-        newStr = realloc ( newStr, sizeof ( char ) * (intTmp+1) ) ;
-    }
-
-    return newStr ;
-}
-
-char ** check_outSize( char ** out , unsigned int  * outSize , const unsigned int blockCount ){
-
-    if ( *outSize == blockCount ) {
-        *outSize += 100 ;
-        out = realloc( out, sizeof(char*) * (*outSize) ) ;
-    }
-
-    return out ;
-}
 
 int main(int argc, char *argv[])
 {
@@ -160,87 +205,37 @@ int main(int argc, char *argv[])
         }
     */
     // open the file
-    FILE *fp = fopen(fName, "r");
-    if (fp == NULL)
-    {
-        printf("Error: Unable to open the file, %s.\n", fName);
-        return 1;
-    }
+    char * jsonTxt = read_file ( fName ) ;
+    if ( jsonTxt == NULL ) { return EXIT_FAILURE ; }
 
-    char *blocks[MAX_BLOCKS];
-    char chunk[CHUNK_SIZE + 1];
-    size_t bytesRead;
+    cJSON * root = cJSON_Parse( jsonTxt ) ;
+    free ( jsonTxt ) ;
 
-    char *cPtr  ;
-    int insideBlock = 0 ;
-
-    char *str0[] = {"\"sna\"","\"sareaen\"" };
-    const unsigned int str0Len = 2 ;
-
-    unsigned int * str0Size   = get_str0SizeList ( str0 , str0Len ) ;
-           char ** formatList = get_formatList   ( str0 , str0Len ) ;
-
-    //unsigned int outSize = 100 ;
-    //char ** out = get_out ( outSize ) ;
-    char *** outList = malloc ( sizeof( char ** ) * str0Len ) ;
-    unsigned int * outSize = malloc ( sizeof ( unsigned int ) * str0Len ) ;
-    for ( unsigned int i = 0 ; i < str0Len ; i ++ ) {
-        outSize [i] = 100 ;
-        outList [ i ]= get_out ( outSize [ i ] ) ;
-    }
-
-
-    char *str0Ptr =NULL ;
-    unsigned int intTmp = 0 ;
-    unsigned int blockCount = 0 ;
-    while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
-    {
-        chunk[bytesRead] = '\0';
-
-        cPtr = chunk ;
-        for (size_t i = 0; i < bytesRead; i++, cPtr++ ) {
-
-            if       ( *cPtr == '{' ){   insideBlock++; blockCount++;
-            }else if ( *cPtr == '}' ){   insideBlock--;
-            }else {
-                
-                for ( unsigned int iStr = 0 ; iStr < str0Len ; iStr++ ) {
-                    
-                    if ( strncmp ( cPtr , str0 [ iStr] , str0Size[iStr]) ) { continue; }
-
-                    outList [ iStr ] = check_outSize ( outList[ iStr ] , outSize+iStr , blockCount ) ;
-
-                    outList[ iStr ][ blockCount ] = get_value( cPtr , formatList [ iStr ] );
-                    //printf ( "get :: %s:%s\n", str0 [ iStr] , outList [ iStr ] [ blockCount ]  );
-
-                }        
-            }
-
-
+    if ( root == NULL ) {
+        const char * errPtr= cJSON_GetErrorPtr();
+        if ( errPtr != NULL ) {
+            fprintf ( stderr , "Error: %s\n", errPtr ) ;
         }
-
+        return EXIT_FAILURE ;
     }
+    /* --- Process the JSON data here --- */
+    printf("Successfully parsed JSON file.\n");
 
-    if ( insideBlock != 0 ) {
-        fprintf ( stderr, "the JSON file is broken.\n") ;
+        cJSON *name ;
+        cJSON *ar   ;
+    cJSON *element = root->child;
+    for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){   
+        name = cJSON_GetObjectItemCaseSensitive( element , "sna");
+        ar   = cJSON_GetObjectItemCaseSensitive( element , "ar");
+
+        if (cJSON_IsString(name) && name->valuestring != NULL &&
+            cJSON_IsString(ar  ) && ar  ->valuestring != NULL) {
+            printf("[%i] %s | %s\n", i , name->valuestring, ar->valuestring);
+        }
     }
+    fflush( stdout );
 
-    for ( unsigned int i = 0 ; i < blockCount ; i++ ) {
-        printf ( "[%i] [", i ) ;
-        for ( unsigned int j = 0 ; j < str0Len ; j++ )  {
-            printf ( "%s\t ", outList[j][i] ) ;
-        }puts("]");
-    }
-
-   // fclose(fp);
-   // free ( str0Size ) ;
-
-    int i = 0 ;
-
-
-   //free( outSize );
-
-
+    cJSON_Delete(root); 
     return EXIT_SUCCESS;
 }
 
