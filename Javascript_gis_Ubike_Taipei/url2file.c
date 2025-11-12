@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
         printf ( "str [%i] = %s, %i\n", i,   str0[i] , str0Size [ i ] ) ;
     }
 
-    char * out [] ;
+    //char * out [] ;
 
     char *str0Ptr =NULL ;
     size_t str0Szie = 5;
