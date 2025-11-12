@@ -92,7 +92,7 @@ void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[
 
     char * currentBlock = currentBlockIn [0] ;
 
-    if (c == '{')
+    if ( c == '{')
     {
         num->insideBlock++;
         num->blockSize = 100;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     char *blocks[MAX_BLOCKS];
     char chunk[CHUNK_SIZE + 1];
     size_t bytesRead;
-    char *currentBlock = NULL;
+    /*char *currentBlock = NULL;
 
     numStruct num ;
     num.blockCount = 0 ;
@@ -182,23 +182,70 @@ int main(int argc, char *argv[])
     num.currentLen = 0 ;
     num.insideBlock = 0 ;
 
-    char c ;
+    char c ;*/
+    char *cPtr  ;
+    int insideBlock = 0 ;
+    char *str0[] = {"\"sna\"","\"sareaen\"" };
+    const unsigned int str0Len = 2 ;
+    unsigned int * str0Size = NULL ;
+    str0Size = calloc ( str0Len, sizeof ( unsigned int ) ) ;
+    for ( unsigned int i = 0 ; i < str0Len ; i++ ) { 
+        str0Size [ i ] =  strlen ( str0 [ i ] ) ;
+    }
+    for ( unsigned int i = 0 ; i < str0Len ; i++ ) { 
+        printf ( "str [%i] = %s, %i\n", i,   str0[i] , str0Size [ i ] ) ;
+    }
 
+    char * out [] ;
+
+    char *str0Ptr =NULL ;
+    size_t str0Szie = 5;
+    char buffer [1024];
+    char buffer2 [1024];
     while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
-    {
-        chunk[bytesRead] = '\0';
+    {            
+        cPtr = chunk ;
+        for (size_t i = 0; i < bytesRead; i++) {
+            cPtr++ ;
+            if ( *cPtr == '{' ) {
+                insideBlock++;
+            }else if ( *cPtr == '}' ){
+                insideBlock--;
+            }else {
+                
+                for ( unsigned int iStr = 0 ; iStr < 2 ; iStr++ ) {
+                    
+                    str0Ptr = str0 [ iStr] ;
+                    //puts( str0Ptr ) ;
+                    if ( strncmp ( cPtr , str0Ptr, str0Size[iStr]) ) { continue; }
+                    
+                    snprintf(buffer, sizeof(buffer), "%s:\"%%[^\"]\"", str0Ptr);
+                    sscanf ( cPtr , buffer , buffer2  );
+                    printf ( "get :: %s:%s\n", str0Ptr , buffer2 );       
+                }        
+            }
+
+
+        }
+
+        /*chunk[bytesRead] = '\0';
 
         for (size_t i = 0; i < bytesRead; i++)
         {
             c = chunk[i];
             if ( !(num.blockCount < MAX_BLOCKS ) ) { break; } 
             exam_a_char ( c , &num , &currentBlock , blocks ) ;
-        }
+        }*/
+    }
+
+    if ( insideBlock != 0 ) {
+        fprintf ( stderr, "the JSON file is broken.\n") ;
     }
 
     fclose(fp);
+    free ( str0Size ) ;
 
-    print_block( &num , blocks ) ;
+    //print_block( &num , blocks ) ;
 
     return EXIT_SUCCESS;
 }
