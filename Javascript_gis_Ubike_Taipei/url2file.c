@@ -78,76 +78,9 @@ int donwloadFileFromURL(const char *fName, char *urlAddress)
 }
 
 #define CHUNK_SIZE 1024
-#define MAX_BLOCKS 10
-typedef struct
-{
-    size_t blockSize;
-    size_t currentLen;
-    int insideBlock;
-    int blockCount;
+#define MAX_BLOCKS 5000
+#define STR_SIZE 512
 
-} numStruct;
-void exam_a_char(char c, numStruct *num , char **currentBlockIn ,  char *blocks[] )
-{
-
-    char * currentBlock = currentBlockIn [0] ;
-
-    if ( c == '{')
-    {
-        num->insideBlock++;
-        num->blockSize = 100;
-        currentBlock = malloc(num->blockSize);
-        num->currentLen = 0;
-    }
-    else if (c == '}' && num->insideBlock)
-    {
-        num->insideBlock--;
-
-        // null-terminate
-        if (num->currentLen + 1 > num->blockSize)
-        {
-            currentBlock = realloc(currentBlock, num->currentLen + 1);
-        }
-        currentBlock[num->currentLen] = '\0';
-
-        // store block safely
-        if (num->blockCount < MAX_BLOCKS)
-        {
-            blocks[(num->blockCount)++] = currentBlock;
-            printf("blockCount = %d\n", num->blockCount);
-        }
-        else
-        {
-            printf("blockCount = %d\n", num->blockCount);
-            free(currentBlock);
-        }
-
-        currentBlock = NULL;
-        num->currentLen = 0;
-    }
-    else if (num->insideBlock)
-    {
-        // append char
-        if (num->currentLen + 1 >= num->blockSize)
-        {
-            num->blockSize += 100;
-            currentBlock = realloc(currentBlock, num->blockSize);
-        }
-        currentBlock[(num->currentLen)++] = c;
-    }
-
-    * currentBlockIn = currentBlock ; 
-    
-}
-void print_block( numStruct * num , char * blocks[] ){
-    unsigned int blockCount = num->blockCount ;
-    printf("Total blocks found: %d\n", blockCount);
-    for (unsigned int i = 0; i < blockCount; i++)
-    {
-        printf("Block %d:\n%s\n\n", i , blocks[i]);
-        free(blocks[i]);
-    }
-}
 int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, ".UTF-8");    
@@ -174,19 +107,13 @@ int main(int argc, char *argv[])
     char *blocks[MAX_BLOCKS];
     char chunk[CHUNK_SIZE + 1];
     size_t bytesRead;
-    /*char *currentBlock = NULL;
 
-    numStruct num ;
-    num.blockCount = 0 ;
-    num.blockSize = 0 ;
-    num.currentLen = 0 ;
-    num.insideBlock = 0 ;
-
-    char c ;*/
     char *cPtr  ;
     int insideBlock = 0 ;
+
     char *str0[] = {"\"sna\"","\"sareaen\"" };
     const unsigned int str0Len = 2 ;
+
     unsigned int * str0Size = NULL ;
     str0Size = calloc ( str0Len, sizeof ( unsigned int ) ) ;
     for ( unsigned int i = 0 ; i < str0Len ; i++ ) { 
@@ -196,39 +123,54 @@ int main(int argc, char *argv[])
         printf ( "str [%i] = %s, %i\n", i,   str0[i] , str0Size [ i ] ) ;
     }
 
+    const char * FORMAT = ": \"%[^\"]\"" ;
+    const unsigned int FORMATLEN = strlen ( FORMAT ) ;
+    char ** formatList = malloc ( sizeof (char) * str0Len ) ;
+    for ( unsigned int i = 0 ; i < str0Len ; i ++ ) {
+        formatList [ i ] = malloc (  sizeof ( char ) * ( FORMATLEN + strlen ( str0 [ i ] ) ) ) ;
+        sprintf ( formatList [i] , "%s%s" , str0 [i] , FORMAT ) ;
+        printf ( "format[%i]: %s\n" , i , formatList[i] ) ;
+    }
+
     //char * out [] ;
 
     char *str0Ptr =NULL ;
-    size_t str0Szie = 5;
-    char buffer [1024];
-    char buffer2 [1024];
+    unsigned int intTmp = 0 ;
+    unsigned int blockCount = 0 ;
     while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
-    {            
+    {
+        chunk[bytesRead] = '\0';
+
         cPtr = chunk ;
-        for (size_t i = 0; i < bytesRead; i++) {
-            cPtr++ ;
+        for (size_t i = 0; i < bytesRead; i++, cPtr++ ) {
+
             if ( *cPtr == '{' ) {
                 insideBlock++;
+                blockCount++;
             }else if ( *cPtr == '}' ){
                 insideBlock--;
             }else {
                 
-                for ( unsigned int iStr = 0 ; iStr < 2 ; iStr++ ) {
+                for ( unsigned int iStr = 0 ; iStr < 1 ; iStr++ ) {
                     
                     str0Ptr = str0 [ iStr] ;
                     //puts( str0Ptr ) ;
                     if ( strncmp ( cPtr , str0Ptr, str0Size[iStr]) ) { continue; }
-                    
-                    snprintf(buffer, sizeof(buffer), "%s:\"%%[^\"]\"", str0Ptr);
-                    sscanf ( cPtr , buffer , buffer2  );
-                    printf ( "get :: %s:%s\n", str0Ptr , buffer2 );       
+
+                    char * newStr = malloc( STR_SIZE * sizeof(char) );
+                    sscanf ( cPtr , formatList[iStr] , newStr  );
+                    intTmp = strlen ( newStr ) ;
+                    if ( intTmp < STR_SIZE ) {
+                        newStr = realloc ( newStr, sizeof ( char ) * intTmp ) ;
+                    }
+                    printf ( "get :: %s:%s\n", str0Ptr , newStr );
                 }        
             }
 
 
         }
 
-        /*chunk[bytesRead] = '\0';
+        /*
 
         for (size_t i = 0; i < bytesRead; i++)
         {
