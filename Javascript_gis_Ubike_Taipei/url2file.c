@@ -157,18 +157,24 @@ int main(int argc, char *argv[])
     
    
     const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
+
     const unsigned int jSize = sizeof(target) / sizeof(char*) ;
+    printf ( " jSzie = %i\n", jSize ) ;
     struct jsonObjectItemStruct * j = calloc (  jSize , sizeof ( struct jsonObjectItemStruct ) ) ;
     for ( unsigned int i = 0 ; i < jSize ; i ++ ) {
         j [ i ].key = ( char * ) target [ i ] ;
+        printf ( "[key | %i] %s\n" , i , j[i].key ) ;
     }
     cJSON *element = root->child;
+    cJSON *item = NULL ;
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
-        printf ( "[ %i ]", i ) ;
+        printf ( "[ % 3i ]", i ) ;
         for ( unsigned int k = 0 ; k < jSize ; k++ ) {
-            j[k].ObjectItem = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
-            if (cJSON_IsString( j[k].ObjectItem ) && (j[k].ObjectItem)->valuestring != NULL ) {
-                printf("| %s",(j[k].ObjectItem)->valuestring);
+            item = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
+            if ( item != NULL ) {
+                       if ( cJSON_IsString (item) ) { printf("| %s" , item->valuestring );
+                } else if ( cJSON_IsNumber (item) ) { printf("| %lf", item->valuedouble );
+                }
             }       
         }puts("");    
         
