@@ -44,8 +44,9 @@ Open in the browser http://127.0.0.1:8080/
 
       <script>
 
+        let Daan =[25.0339145, 121.5412233];
         //引入地圖
-        let map = L.map('map').setView([25.0339145, 121.5412233], 13);
+        let map = L.map('map').setView( Daan , 20);
 
         //初始化地圖圖層(預設)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -53,35 +54,31 @@ Open in the browser http://127.0.0.1:8080/
         }).addTo(map);
 
 
-        var marker = L.marker([51.5, -0.09]).addTo(map);
+        var marker = L.marker( Daan ).addTo(map);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        L.marker([51.5, -0.09]).addTo(map)
+        L.marker(Daan).addTo(map)
           .bindPopup('A pretty CSS popup.<br> Easily customizable.')
           .openPopup();
 
-        const cities = [
-            { name: "Tokyo", lat: 35.6812, lon: 139.7671 },
-            { name: "Nagoya", lat: 35.1815, lon: 136.9066 },
-            { name: "Okinawa", lat: 26.2124, lon: 127.6809 },
-            { name: "Taipei", lat: 25.0330, lon: 121.5654 }
-        ];
-
-        // Loop through each city in the cities list
-        cities.forEach(function (city) {
-            const marker = L.marker([city.lat, city.lon]);
-            marker.addTo(map);
-            marker.bindPopup("<b>" + city.name + "</b><br>Lat: " + city.lat + "<br>Lon: " + city.lon);
-        });
+        let Ubike = [];
 
         fetch("/run")
-          .then(response => response.text())  // we're returning plain text
+          .then(response => response.json())  // we're returning plain text
           .then(data => {
-            document.getElementById("output").textContent = data; // show result
-          })
+            Ubike = data;
+            console.log ( Ubike ) ;
+            // Add markers **after** the data is received
+            Ubike.forEach(function (bike) {
+              const bmarker = L.marker([bike.lat, bike.lon]);
+              bmarker.addTo(map);
+              bmarker.bindPopup("<b>" + bike.name + "</b><br>Lat: " + bike.lat + "<br>Lon: " + bike.lon);
+            });
+         })
           .catch(error => console.error("Error:", error));
+
 
       </script>
 </body>
