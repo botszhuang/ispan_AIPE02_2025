@@ -116,8 +116,8 @@ char *read_file(const char *fName) {
     return content ;
 }
 
-
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+int main()
 {
     setlocale(LC_ALL, ".UTF-8");    
 
@@ -148,29 +148,18 @@ int main(int argc, char *argv[])
     }
     /* --- Process the JSON data here --- */
     printf("Successfully parsed JSON file.\n");
-
-    
-    struct jsonObjectItemStruct{
-        char * key ;
-        cJSON * ObjectItem ;
-    };
-    
-   
+ 
     const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
 
     const unsigned int jSize = sizeof(target) / sizeof(char*) ;
     printf ( " jSzie = %i\n", jSize ) ;
-    struct jsonObjectItemStruct * j = calloc (  jSize , sizeof ( struct jsonObjectItemStruct ) ) ;
-    for ( unsigned int i = 0 ; i < jSize ; i ++ ) {
-        j [ i ].key = ( char * ) target [ i ] ;
-        printf ( "[key | %i] %s\n" , i , j[i].key ) ;
-    }
+ 
     cJSON *element = root->child;
     cJSON *item = NULL ;
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
         printf ( "[ % 3i ]", i ) ;
         for ( unsigned int k = 0 ; k < jSize ; k++ ) {
-            item = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
+            item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );
             if ( item != NULL ) {
                        if ( cJSON_IsString (item) ) { printf("| %s" , item->valuestring );
                 } else if ( cJSON_IsNumber (item) ) { printf("| %lf", item->valuedouble );
@@ -181,7 +170,6 @@ int main(int argc, char *argv[])
 
     }
     fflush( stdout );
-    free ( j );
     cJSON_Delete(root); 
     return EXIT_SUCCESS;
 }
