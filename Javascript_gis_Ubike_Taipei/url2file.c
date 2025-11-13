@@ -155,14 +155,17 @@ int main(int argc, char *argv[])
         cJSON * ObjectItem ;
     };
     
-    struct jsonObjectItemStruct j [2] ;
-    j[0].key = "sna" ;
-    j[1].key = "ar"  ;
-
+   
+    const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
+    const unsigned int jSize = sizeof(target) / sizeof(char*) ;
+    struct jsonObjectItemStruct * j = calloc (  jSize , sizeof ( struct jsonObjectItemStruct ) ) ;
+    for ( unsigned int i = 0 ; i < jSize ; i ++ ) {
+        j [ i ].key = ( char * ) target [ i ] ;
+    }
     cJSON *element = root->child;
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
         printf ( "[ %i ]", i ) ;
-        for ( unsigned int k = 0 ; k < 2 ; k++ ) {
+        for ( unsigned int k = 0 ; k < jSize ; k++ ) {
             j[k].ObjectItem = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
             if (cJSON_IsString( j[k].ObjectItem ) && (j[k].ObjectItem)->valuestring != NULL ) {
                 printf("| %s",(j[k].ObjectItem)->valuestring);
@@ -172,7 +175,7 @@ int main(int argc, char *argv[])
 
     }
     fflush( stdout );
-
+    free ( j );
     cJSON_Delete(root); 
     return EXIT_SUCCESS;
 }
