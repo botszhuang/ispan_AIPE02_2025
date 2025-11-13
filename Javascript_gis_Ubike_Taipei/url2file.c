@@ -160,85 +160,47 @@ int main(int argc, char *argv[])
         }
     */
     // open the file
-    FILE *fp = fopen(fName, "r");
-    if (fp == NULL)
-    {
-        printf("Error: Unable to open the file, %s.\n", fName);
-        return 1;
+
+        if (!json_data) {
+        fprintf(stderr, "Failed to download JSON\n");
+        return EXIT_FAILURE;
     }
 
-    char *blocks[MAX_BLOCKS];
-    char chunk[CHUNK_SIZE + 1];
-    size_t bytesRead;
-
-    char *cPtr  ;
-    int insideBlock = 0 ;
-
-    char *str0[] = {"\"sna\"","\"sareaen\"" };
-    const unsigned int str0Len = 2 ;
-
-    unsigned int * str0Size   = get_str0SizeList ( str0 , str0Len ) ;
-           char ** formatList = get_formatList   ( str0 , str0Len ) ;
-
-    //unsigned int outSize = 100 ;
-    //char ** out = get_out ( outSize ) ;
-    char *** outList = malloc ( sizeof( char ** ) * str0Len ) ;
-    unsigned int * outSize = malloc ( sizeof ( unsigned int ) * str0Len ) ;
-    for ( unsigned int i = 0 ; i < str0Len ; i ++ ) {
-        outSize [i] = 100 ;
-        outList [ i ]= get_out ( outSize [ i ] ) ;
+    // Parse JSON
+    cJSON *root = cJSON_Parse(json_data);
+    if (!root) {
+        fprintf(stderr, "JSON parse error: %s\n", cJSON_GetErrorPtr());
+        free(json_data);
+        return EXIT_FAILURE;
     }
 
-
-    char *str0Ptr =NULL ;
-    unsigned int intTmp = 0 ;
-    unsigned int blockCount = 0 ;
-    while ((bytesRead = fread(chunk, 1, CHUNK_SIZE, fp)) > 0)
-    {
-        chunk[bytesRead] = '\0';
-
-        cPtr = chunk ;
-        for (size_t i = 0; i < bytesRead; i++, cPtr++ ) {
-
-            if       ( *cPtr == '{' ){   insideBlock++; blockCount++;
-            }else if ( *cPtr == '}' ){   insideBlock--;
-            }else {
-                
-                for ( unsigned int iStr = 0 ; iStr < str0Len ; iStr++ ) {
-                    
-                    if ( strncmp ( cPtr , str0 [ iStr] , str0Size[iStr]) ) { continue; }
-
-                    outList [ iStr ] = check_outSize ( outList[ iStr ] , outSize+iStr , blockCount ) ;
-
-                    outList[ iStr ][ blockCount ] = get_value( cPtr , formatList [ iStr ] );
-                    //printf ( "get :: %s:%s\n", str0 [ iStr] , outList [ iStr ] [ blockCount ]  );
-
-                }        
-            }
-
-
-        }
-
+    if (!cJSON_IsArray(root)) {
+        fprintf(stderr, "Expected top-level JSON array\n");
+        cJSON_Delete(root);
+        free(json_data);
+        return EXIT_FAILURE;
     }
 
-    if ( insideBlock != 0 ) {
-        fprintf ( stderr, "the JSON file is broken.\n") ;
+    // Loop through each station object
+    int station_count = cJSON_GetArraySize(root);
+    printf("Total stations: %d\n\n", station_count);
+
+    for (int i = 0; i < station_count; i++) {
+        cJSON *station = cJSON_GetArrayItem(root, i);
+        if (!cJSON_IsObject(station)) continue;
+
+        cJSON *sna = cJSON_GetObjectItem(station, "sna");
+        cJSON *sareaen = cJSON_GetObjectItem(station, "sareaen");
+
+        const char *sna_str = cJSON_IsString(sna) ? sna->valuestring : "(null)";
+        const char *sareaen_str = cJSON_IsString(sareaen) ? sareaen->valuestring : "(null)";
+
+        printf("[%3d] %-30s | %s\n", i + 1, sna_str, sareaen_str);
     }
 
-    for ( unsigned int i = 0 ; i < blockCount ; i++ ) {
-        printf ( "[%i] [", i ) ;
-        for ( unsigned int j = 0 ; j < str0Len ; j++ )  {
-            printf ( "%s\t ", outList[j][i] ) ;
-        }puts("]");
-    }
-
-   // fclose(fp);
-   // free ( str0Size ) ;
-
-    int i = 0 ;
-
-
-   //free( outSize );
+    // Cleanup
+    cJSON_Delete(root);
+    free(json_data);
 
 
     return EXIT_SUCCESS;
