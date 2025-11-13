@@ -81,7 +81,7 @@ int donwloadFileFromURL(const char *fName, char *urlAddress)
     return (int)res;
 }
 char *read_file(const char *fName) {
-    
+
     FILE *fp = NULL;
     long fp_length = 0;
 
@@ -91,7 +91,7 @@ char *read_file(const char *fName) {
         fprintf(stderr, "Could not open file %s\n", fName );
         return NULL;
     }
-    
+
     fseek ( fp, 0 , SEEK_END ) ;
     fp_length = ftell ( fp ) ;
     fseek ( fp, 0 , SEEK_SET ) ;
@@ -119,7 +119,7 @@ char *read_file(const char *fName) {
 //int main(int argc, char *argv[])
 int main()
 {
-    setlocale(LC_ALL, ".UTF-8");    
+    setlocale(LC_ALL, ".UTF-8");
 
     int res = 0;
 
@@ -133,51 +133,6 @@ int main()
         }
     */
     // open the file
-<<<<<<< HEAD
-
-        if (!json_data) {
-        fprintf(stderr, "Failed to download JSON\n");
-        return EXIT_FAILURE;
-    }
-
-    // Parse JSON
-    cJSON *root = cJSON_Parse(json_data);
-    if (!root) {
-        fprintf(stderr, "JSON parse error: %s\n", cJSON_GetErrorPtr());
-        free(json_data);
-        return EXIT_FAILURE;
-    }
-
-    if (!cJSON_IsArray(root)) {
-        fprintf(stderr, "Expected top-level JSON array\n");
-        cJSON_Delete(root);
-        free(json_data);
-        return EXIT_FAILURE;
-    }
-
-    // Loop through each station object
-    int station_count = cJSON_GetArraySize(root);
-    printf("Total stations: %d\n\n", station_count);
-
-    for (int i = 0; i < station_count; i++) {
-        cJSON *station = cJSON_GetArrayItem(root, i);
-        if (!cJSON_IsObject(station)) continue;
-
-        cJSON *sna = cJSON_GetObjectItem(station, "sna");
-        cJSON *sareaen = cJSON_GetObjectItem(station, "sareaen");
-
-        const char *sna_str = cJSON_IsString(sna) ? sna->valuestring : "(null)";
-        const char *sareaen_str = cJSON_IsString(sareaen) ? sareaen->valuestring : "(null)";
-
-        printf("[%3d] %-30s | %s\n", i + 1, sna_str, sareaen_str);
-    }
-
-    // Cleanup
-    cJSON_Delete(root);
-    free(json_data);
-
-
-=======
     char * jsonTxt = read_file ( fName ) ;
     if ( jsonTxt == NULL ) { return EXIT_FAILURE ; }
 
@@ -193,12 +148,12 @@ int main()
     }
     /* --- Process the JSON data here --- */
     printf("Successfully parsed JSON file.\n");
- 
+
     const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
 
     const unsigned int jSize = sizeof(target) / sizeof(char*) ;
     printf ( " jSzie = %i\n", jSize ) ;
- 
+
     cJSON *element = root->child;
     cJSON *item = NULL ;
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
@@ -209,14 +164,12 @@ int main()
                        if ( cJSON_IsString (item) ) { printf("| %s" , item->valuestring );
                 } else if ( cJSON_IsNumber (item) ) { printf("| %lf", item->valuedouble );
                 }
-            }       
-        }puts("");    
-        
+            }
+        }puts("");
+
 
     }
     fflush( stdout );
-    cJSON_Delete(root); 
->>>>>>> refs/remotes/origin/main
+    cJSON_Delete(root);
     return EXIT_SUCCESS;
 }
-
