@@ -3,13 +3,17 @@
 #include <curl/curl.h>
 #include <string.h>
 #include <locale.h>
+//#include <cjson/cJSON.h>
+#include "cJSON.h"
+// gcc cJSON.c url2file.c -o ur2file.o  -lcurl
+
 
 static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *stream)
 {
     size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
     return written;
 }
-int donwloadFileFromURL(char *fName, char *urlAddress)
+int donwloadFileFromURL(const char *fName, char *urlAddress)
 {
     // const char *fName = "Ubike.json";
     // char *urlAddress = "https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json";
@@ -76,75 +80,44 @@ int donwloadFileFromURL(char *fName, char *urlAddress)
     curl_global_cleanup();
     return (int)res;
 }
+char *read_file(const char *fName) {
+    
+    FILE *fp = NULL;
+    long fp_length = 0;
 
-#define CHUNK_SIZE 1024
-#define MAX_BLOCKS 5000
-#define STR_SIZE 512
 
-char ** get_formatList ( char ** str0 , const unsigned int str0Len ) {
+    fp = fopen(fName, "r"); // Open file in binary mode for cross-platform compatibility
+    if (fp == NULL) {
+        fprintf(stderr, "Could not open file %s\n", fName );
+        return NULL;
+    }
+    
+    fseek ( fp, 0 , SEEK_END ) ;
+    fp_length = ftell ( fp ) ;
+    fseek ( fp, 0 , SEEK_SET ) ;
 
-    const char * FORMAT = ": \"%[^\"]\"" ;
-    const unsigned int FORMATLEN = strlen ( FORMAT ) ;
-    char ** formatList = malloc ( sizeof (char*) * str0Len ) ;
-
-    for ( unsigned int i = 0 ; i < str0Len ; i ++ ) {
-        formatList [ i ] = malloc (  sizeof ( char ) * ( FORMATLEN + strlen ( str0 [ i ] ) ) ) ;
-        sprintf ( formatList [i] , "%s%s" , str0 [i] , FORMAT ) ;
-        printf ( "format[%i]: %s\n" , i , formatList[i] ) ;
+    char *content =  malloc ( fp_length + sizeof ('\0') ) ;
+    if ( content == NULL ) {
+        fprintf ( stderr , "Memory allocation errer!\n" ) ;
+        fclose ( fp ) ;
+        return NULL ;
     }
 
-    return formatList ;
-}
-void free_formatList ( char ** x , const unsigned int xSize ) {
-
-    for ( unsigned int i = 0 ; i < xSize ; i++ ) { free ( x [ i ] ) ; }
-    free ( x ) ;
-}
-
-unsigned int * get_str0SizeList ( char ** str0 , const unsigned int str0Len ) {
-
-    unsigned int * str0Size =  calloc ( str0Len, sizeof ( unsigned int ) ) ;
-
-    for ( unsigned int i = 0 ; i < str0Len ; i++ ) {
-        str0Size [ i ] =  strlen ( str0 [ i ] ) ;
+    size_t readbytes = fread ( content, 1, ( size_t) fp_length , fp ) ;
+    if ( readbytes != (size_t) fp_length) {
+        fprintf ( stderr , "Unable to reading file %s!\n", fName ) ;
+        free ( content ) ;
+        fclose ( fp ) ;
+        return NULL ;
     }
 
-    for ( unsigned int i = 0 ; i < str0Len ; i++ ) {
-        printf ( "str [%i] = %s, %i\n", i, str0[i] , str0Size [ i ] ) ;
-    }
-
-    return str0Size ;
+    content [ fp_length ] = '\0' ;
+    fclose ( fp ) ;
+    return content ;
 }
 
-char ** get_out( const unsigned int outSize ){
- return ( malloc ( sizeof( char * ) * outSize ) ) ;
-}
-char * get_value( char * cPtr , char * format ){
-
-    char * newStr = malloc( STR_SIZE * sizeof(char) );
-
-    sscanf ( cPtr , format , newStr  );
-
-    const unsigned int intTmp = strlen ( newStr ) ;
-
-    if ( intTmp+1 < STR_SIZE ) {
-        newStr = realloc ( newStr, sizeof ( char ) * (intTmp+1) ) ;
-    }
-
-    return newStr ;
-}
-
-char ** check_outSize( char ** out , unsigned int  * outSize , const unsigned int blockCount ){
-
-    if ( *outSize == blockCount ) {
-        *outSize += 100 ;
-        out = realloc( out, sizeof(char*) * (*outSize) ) ;
-    }
-
-    return out ;
-}
-
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+int main()
 {
     setlocale(LC_ALL, ".UTF-8");    
 
@@ -160,6 +133,7 @@ int main(int argc, char *argv[])
         }
     */
     // open the file
+<<<<<<< HEAD
 
         if (!json_data) {
         fprintf(stderr, "Failed to download JSON\n");
@@ -203,6 +177,46 @@ int main(int argc, char *argv[])
     free(json_data);
 
 
+=======
+    char * jsonTxt = read_file ( fName ) ;
+    if ( jsonTxt == NULL ) { return EXIT_FAILURE ; }
+
+    cJSON * root = cJSON_Parse( jsonTxt ) ;
+    free ( jsonTxt ) ;
+
+    if ( root == NULL ) {
+        const char * errPtr= cJSON_GetErrorPtr();
+        if ( errPtr != NULL ) {
+            fprintf ( stderr , "Error: %s\n", errPtr ) ;
+        }
+        return EXIT_FAILURE ;
+    }
+    /* --- Process the JSON data here --- */
+    printf("Successfully parsed JSON file.\n");
+ 
+    const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
+
+    const unsigned int jSize = sizeof(target) / sizeof(char*) ;
+    printf ( " jSzie = %i\n", jSize ) ;
+ 
+    cJSON *element = root->child;
+    cJSON *item = NULL ;
+    for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
+        printf ( "[ % 3i ]", i ) ;
+        for ( unsigned int k = 0 ; k < jSize ; k++ ) {
+            item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );
+            if ( item != NULL ) {
+                       if ( cJSON_IsString (item) ) { printf("| %s" , item->valuestring );
+                } else if ( cJSON_IsNumber (item) ) { printf("| %lf", item->valuedouble );
+                }
+            }       
+        }puts("");    
+        
+
+    }
+    fflush( stdout );
+    cJSON_Delete(root); 
+>>>>>>> refs/remotes/origin/main
     return EXIT_SUCCESS;
 }
 
