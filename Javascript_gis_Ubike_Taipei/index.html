@@ -1,4 +1,5 @@
 <!--
+$ source flaskenv/bin/activate
 $ python3 app.py
 Open in the browser http://127.0.0.1:8080/
 -->
@@ -22,7 +23,7 @@ Open in the browser http://127.0.0.1:8080/
     }
 
     #map {
-      height: 500px;
+      height: 750px;
       /* or 100vh for full screen */
       width: 100%;
     }
@@ -42,23 +43,16 @@ Open in the browser http://127.0.0.1:8080/
 
 
       <script>
-
-        let Daan =[25.0339145, 121.5412233];
+        let Daan = [25.0332, 121.5435]
         //引入地圖
-        let map = L.map('map').setView( Daan , 20);
+        let map = L.map('map').setView(Daan, 13);
 
         //初始化地圖圖層(預設)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-
-        var marker = L.marker( Daan ).addTo(map);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        L.marker(Daan).addTo(map)
+        L.marker( Daan ).addTo(map)
           .bindPopup('A pretty CSS popup.<br> Easily customizable.')
           .openPopup();
 
@@ -69,7 +63,7 @@ Open in the browser http://127.0.0.1:8080/
           .then(data => {
             Ubike = data;
             console.log ( Ubike ) ;
-            // Add markers **after** the data is received
+                // Add markers **after** the data is received
             Ubike.forEach(function (bike) {
               const bmarker = L.marker([bike.lat, bike.lon]);
               bmarker.addTo(map);
@@ -78,7 +72,7 @@ Open in the browser http://127.0.0.1:8080/
          })
           .catch(error => console.error("Error:", error));
 
-
+        
       </script>
 </body>
 
