@@ -149,17 +149,26 @@ int main(int argc, char *argv[])
     /* --- Process the JSON data here --- */
     printf("Successfully parsed JSON file.\n");
 
-        cJSON *name ;
-        cJSON *ar   ;
-    cJSON *element = root->child;
-    for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){   
-        name = cJSON_GetObjectItemCaseSensitive( element , "sna");
-        ar   = cJSON_GetObjectItemCaseSensitive( element , "ar");
+    
+    struct jsonObjectItemStruct{
+        char * key ;
+        cJSON * ObjectItem ;
+    };
+    
+    struct jsonObjectItemStruct j [2] ;
+    j[0].key = "sna" ;
+    j[1].key = "ar"  ;
 
-        if (cJSON_IsString(name) && name->valuestring != NULL &&
-            cJSON_IsString(ar  ) && ar  ->valuestring != NULL) {
-            printf("[%i] %s | %s\n", i , name->valuestring, ar->valuestring);
-        }
+    cJSON *element = root->child;
+    for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
+        for ( unsigned int k = 0 ; k < 2 ; k++ ) {
+            j[k].ObjectItem = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
+            if (cJSON_IsString( j[k].ObjectItem ) && (j[k].ObjectItem)->valuestring != NULL ) {
+                printf("%s",(j[k].ObjectItem)->valuestring);
+        }        
+    }   
+        
+
     }
     fflush( stdout );
 
