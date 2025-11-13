@@ -161,12 +161,13 @@ int main(int argc, char *argv[])
 
     cJSON *element = root->child;
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
+        printf ( "[ %i ]", i ) ;
         for ( unsigned int k = 0 ; k < 2 ; k++ ) {
             j[k].ObjectItem = cJSON_GetObjectItemCaseSensitive( element , j[k].key );
             if (cJSON_IsString( j[k].ObjectItem ) && (j[k].ObjectItem)->valuestring != NULL ) {
-                printf("%s",(j[k].ObjectItem)->valuestring);
-        }        
-    }   
+                printf("| %s",(j[k].ObjectItem)->valuestring);
+            }       
+        }puts("");    
         
 
     }
