@@ -1,54 +1,79 @@
+<!--
+$ source flaskenv/bin/activate
+$ python3 app.py
+Open in the browser http://127.0.0.1:8080/
+-->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GSI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UBike</title>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="map.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      height: 750px;
+      /* or 100vh for full screen */
+      width: 100%;
+    }
+  </style>
+
 </head>
 
 <body>
-    <div id="map" class="mapStyle"></div>
+  <h1>Flask + C Example</h1>
+  <div id="map" class="mapStyle"></div>
+  <div id="output"></div>
+    <div>
 
-    <!-- Make sure you put this AFTER Leaflet's CSS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      <!-- Make sure you put this AFTER Leaflet's CSS -->
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <script src="leaflet.js"></script>
 
-    <script>
-        let map = L.map('map').setView([25.0339145, 121.5412233], 13);
+      <script>
+        let Daan = [25.0332, 121.5435]
+        //引入地圖
+        let map = L.map('map').setView(Daan, 13);
 
+        //初始化地圖圖層(預設)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        L.marker( Daan ).addTo(map)
+          .bindPopup('A pretty CSS popup.<br> Easily customizable.')
+          .openPopup();
 
-        L.marker([25.0339145, 121.5412233]).addTo(map)
-            .bindPopup('自訂訊息<br>可以放 HTML')
-            .openPopup();
+        let Ubike = [];
 
-        // Location data (you could load this from a file or API later)
-        const cities = [
-            { name: "Tokyo", lat: 35.6812, lon: 139.7671 },
-            { name: "Nagoya", lat: 35.1815, lon: 136.9066 },
-            { name: "Okinawa", lat: 26.2124, lon: 127.6809 },
-            { name: "Taipei", lat: 25.0330, lon: 121.5654 }
-        ];
+        fetch("/run")
+          .then(response => response.json())  // we're returning plain text
+          .then(data => {
+            Ubike = data;
+            console.log ( Ubike ) ;
+                // Add markers **after** the data is received
+            Ubike.forEach(function (bike) {
+              const bmarker = L.marker([bike.lat, bike.lon]);
+              bmarker.addTo(map);
+              bmarker.bindPopup("<b>" + bike.name + "</b><br>Lat: " + bike.lat + "<br>Lon: " + bike.lon);
+            });
+         })
+          .catch(error => console.error("Error:", error));
 
-        // Loop through each city in the cities list
-        cities.forEach(function (city) {
-            const marker = L.marker([city.lat, city.lon]);
-            marker.addTo(map);
-            marker.bindPopup("<b>" + city.name + "</b><br>Lat: " + city.lat + "<br>Lon: " + city.lon);
-        });
-
-    </script>
+        
+      </script>
 </body>
 
 </html>

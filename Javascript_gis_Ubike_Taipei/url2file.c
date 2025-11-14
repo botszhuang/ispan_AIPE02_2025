@@ -81,7 +81,7 @@ int donwloadFileFromURL(const char *fName, char *urlAddress)
     return (int)res;
 }
 char *read_file(const char *fName) {
-    
+
     FILE *fp = NULL;
     long fp_length = 0;
 
@@ -91,7 +91,7 @@ char *read_file(const char *fName) {
         fprintf(stderr, "Could not open file %s\n", fName );
         return NULL;
     }
-    
+
     fseek ( fp, 0 , SEEK_END ) ;
     fp_length = ftell ( fp ) ;
     fseek ( fp, 0 , SEEK_SET ) ;
@@ -119,7 +119,7 @@ char *read_file(const char *fName) {
 //int main(int argc, char *argv[])
 int main()
 {
-    setlocale(LC_ALL, ".UTF-8");    
+    setlocale(LC_ALL, ".UTF-8");
 
     int res = 0;
 
@@ -147,30 +147,35 @@ int main()
         return EXIT_FAILURE ;
     }
     /* --- Process the JSON data here --- */
-    printf("Successfully parsed JSON file.\n");
- 
-    const char * target [] = { "sna" , "ar" , "latitude" , "longitude" } ;
+    //printf("Successfully parsed JSON file.\n");
+
+    const char * target [] = { "sna" , "latitude" , "longitude" } ;
+
+    char name[256] ;
+    double lat = 0 , lon = 0 ;
 
     const unsigned int jSize = sizeof(target) / sizeof(char*) ;
-    printf ( " jSzie = %i\n", jSize ) ;
- 
+    //printf ( " jSzie = %i\n", jSize ) ;
+
     cJSON *element = root->child;
     cJSON *item = NULL ;
+    fprintf(stdout,"[");
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
-        printf ( "[ % 3i ]", i ) ;
+
+        if ( i != 0 ) { fprintf(stdout,","); }
+
         for ( unsigned int k = 0 ; k < jSize ; k++ ) {
             item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );
             if ( item != NULL ) {
-                       if ( cJSON_IsString (item) ) { printf("| %s" , item->valuestring );
-                } else if ( cJSON_IsNumber (item) ) { printf("| %lf", item->valuedouble );
-                }
-            }       
-        }puts("");    
-        
-
+                       if ( k == 0 ) { strcpy( name , item->valuestring );}
+                  else if ( k == 1 ) { lat = item->valuedouble ;  }
+                  else if ( k == 2 ) { lon = item->valuedouble ; }
+            }
+        }
+        fprintf( stdout, "{ \"name\": \"%s\" , \"lat\":%lf, \"lon\":%lf }" , name, lat, lon ) ;
     }
+    fprintf(stdout,"]");
     fflush( stdout );
-    cJSON_Delete(root); 
+    cJSON_Delete(root);
     return EXIT_SUCCESS;
 }
-
