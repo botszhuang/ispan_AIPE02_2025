@@ -19,15 +19,19 @@
             Module._say_hello();
 
             // --- Function with string argument ---
-            const greet = Module.cwrap('greet', null, ['string']);
-            let fname = "File name";
-            console.log("Calling greet with argument:");
-            greet(fname);
+            //const greet = Module.cwrap('greet', null, ['string']);
+            //let fname = "File name";
+            //console.log("Calling greet with argument:");
+            //greet(fname);
 
             // return
-            const addTen = Module.cwrap('add_ten', 'number', ['number']);
-            const result = addTen(5);
-            console.log("get return from C = " + result);
+            //const addTen = Module.cwrap('add_ten', 'number', ['number']);
+            //const result = addTen(5);
+            //console.log("get return from C = " + result);
+
+            // return
+            const Ubike = Module.cwrap('main', null, null);
+            console.log("run main by C = ");
         };
     </script>
 </body>
