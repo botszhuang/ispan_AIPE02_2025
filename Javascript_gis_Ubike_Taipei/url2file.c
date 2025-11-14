@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <curl/curl.h>
 #include <string.h>
 #include <locale.h>
@@ -120,18 +121,8 @@ typedef struct{
         double lat ;
         double lon ; 
     } stationStruct;
-#define getStationProfile() {\
-    for ( unsigned int k = 0 ; k < jSize ; k++ ) {\
-        item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );\
-        if ( item != NULL ) {\
-                 if ( k == 0 ) { strcpy( station.name , item->valuestring );}\
-            else if ( k == 1 ) { station.lat = item->valuedouble ;  }\
-            else if ( k == 2 ) { station.lon = item->valuedouble ; }\
-        }\
-    }\
-}
 #define printStationProfile(){\
-    if ( i != 0 ) { fprintf(stdout,", "); }\
+    if ( printCounter != 0 ) { fprintf(stdout,", "); }\
     fprintf( stdout, "{ \"name\": \"%s\" , \"lat\":%lf, \"lon\":%lf } " , station.name, station.lat, station.lon ) ;\
 }
 //int main(int argc, char *argv[])
@@ -174,12 +165,42 @@ int main()
 
     cJSON *element = root->child;
     cJSON *item = NULL ;
+    bool missingData = false ;
+    unsigned int printCounter = 0 ;
+
     stationStruct station ;
+    stationStruct Daan ;
+    strcpy( Daan.name , "Daan" ) ;
+    Daan.lat = 25.0332 ;
+    Daan.lon = 121.5435 ;
+
+    double dlat = 0 ;
+    double dlon = 0 ;
+    double dist = 0 ;
+    const double distMAX = 1E-5 ;
+
     fprintf(stdout, "[\n");
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
 
-        getStationProfile() ;
+        for ( unsigned int k = 0 ; k < jSize ; k++ ) {
+            item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );
+            if ( item == NULL ) { missingData = true ; break ;}
+                 if ( k == 0 ) { strcpy( station.name , item->valuestring );}
+            else if ( k == 1 ) { station.lat = item->valuedouble ;  }
+            else if ( k == 2 ) { station.lon = item->valuedouble ; }
+
+        }
+
+        if ( missingData == true ) { continue ; }
+
+        dlat = station.lat - Daan.lat ;
+        dlon = station.lon - Daan.lon ;
+        dist = dlat * dlat + ( dlon * dlon ) ;
+
+        if ( dist > distMAX ) { continue ; }
+        //printf("\n[%3i] ", printCounter ) ;
         printStationProfile() ;
+        printCounter++;
  }
     fprintf(stdout, "\n]\n");
     fflush( stdout );
