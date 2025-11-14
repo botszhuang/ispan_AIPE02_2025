@@ -115,7 +115,25 @@ char *read_file(const char *fName) {
     fclose ( fp ) ;
     return content ;
 }
-
+typedef struct{
+        char name[256] ;
+        double lat ;
+        double lon ; 
+    } stationStruct;
+#define getStationProfile() {\
+    for ( unsigned int k = 0 ; k < jSize ; k++ ) {\
+        item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );\
+        if ( item != NULL ) {\
+                 if ( k == 0 ) { strcpy( station.name , item->valuestring );}\
+            else if ( k == 1 ) { station.lat = item->valuedouble ;  }\
+            else if ( k == 2 ) { station.lon = item->valuedouble ; }\
+        }\
+    }\
+}
+#define printStationProfile(){\
+    if ( i != 0 ) { fprintf(stdout,", "); }\
+    fprintf( stdout, "{ \"name\": \"%s\" , \"lat\":%lf, \"lon\":%lf } " , station.name, station.lat, station.lon ) ;\
+}
 //int main(int argc, char *argv[])
 int main()
 {
@@ -151,30 +169,19 @@ int main()
 
     const char * target [] = { "sna" , "latitude" , "longitude" } ;
 
-    char name[256] ;
-    double lat = 0 , lon = 0 ;
-
     const unsigned int jSize = sizeof(target) / sizeof(char*) ;
     //printf ( " jSzie = %i\n", jSize ) ;
 
     cJSON *element = root->child;
     cJSON *item = NULL ;
-    fprintf(stdout,"[");
+    stationStruct station ;
+    fprintf(stdout, "[\n");
     for ( unsigned int i = 0 ; element != NULL; element = element->next , i++){
 
-        if ( i != 0 ) { fprintf(stdout,","); }
-
-        for ( unsigned int k = 0 ; k < jSize ; k++ ) {
-            item = cJSON_GetObjectItemCaseSensitive( element , target [ k ] );
-            if ( item != NULL ) {
-                       if ( k == 0 ) { strcpy( name , item->valuestring );}
-                  else if ( k == 1 ) { lat = item->valuedouble ;  }
-                  else if ( k == 2 ) { lon = item->valuedouble ; }
-            }
-        }
-        fprintf( stdout, "{ \"name\": \"%s\" , \"lat\":%lf, \"lon\":%lf }" , name, lat, lon ) ;
-    }
-    fprintf(stdout,"]");
+        getStationProfile() ;
+        printStationProfile() ;
+ }
+    fprintf(stdout, "\n]\n");
     fflush( stdout );
     cJSON_Delete(root);
     return EXIT_SUCCESS;
